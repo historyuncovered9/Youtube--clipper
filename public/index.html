@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>YouTube Clipper</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, Segoe UI, Roboto, sans-serif;
+    background: #0f0f0f;
+    color: #f1f1f1;
+    margin: 0;
+    padding: 24px 16px;
+    display: flex;
+    justify-content: center;
+  }
+  .card {
+    max-width: 480px;
+    width: 100%;
+    background: #1a1a1a;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  }
+  h1 { font-size: 22px; margin-bottom: 4px; }
+  p.sub { color: #999; font-size: 14px; margin-top: 0; margin-bottom: 20px; }
+  label { display: block; font-size: 13px; color: #bbb; margin-bottom: 6px; margin-top: 16px; }
+  input {
+    width: 100%; padding: 12px; border-radius: 8px;
+    border: 1px solid #333; background: #0f0f0f; color: #fff; font-size: 15px;
+  }
+  .row { display: flex; gap: 12px; }
+  .row > div { flex: 1; }
+  button {
+    width: 100%; margin-top: 24px; padding: 14px; border: none;
+    border-radius: 8px; background: #ff0033; color: white;
+    font-size: 16px; font-weight: 600; cursor: pointer;
+  }
+  button:disabled { background: #555; }
+  #status { margin-top: 16px; font-size: 14px; text-align: center; color: #ccc; }
+  #result { margin-top: 16px; text-align: center; }
+  #result a {
+    display: inline-block; padding: 10px 20px; background: #2a2a2a;
+    color: #4ade80; border-radius: 8px; text-decoration: none;
+  }
+  video { width: 100%; border-radius: 8px; margin-top: 12px; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>🎬 YouTube Clipper</h1>
+    <p class="sub">Link daalo, time set karo, clip download karo</p>
+
+    <label>YouTube Video Link</label>
+    <input type="text" id="url" placeholder="https://youtube.com/watch?v=..." />
+
+    <div class="row">
+      <div>
+        <label>Start (mm:ss)</label>
+        <input type="text" id="start" placeholder="0:10" />
+      </div>
+      <div>
+        <label>End (mm:ss)</label>
+        <input type="text" id="end" placeholder="0:30" />
+      </div>
+    </div>
+
+    <button id="btn" onclick="generateClip()">Clip Banao</button>
+
+    <div id="status"></div>
+    <div id="result"></div>
+  </div>
+
+  <script>
+    async function generateClip() {
+      const url = document.getElementById("url").value.trim();
+      const start = document.getElementById("start").value.trim();
+      const end = document.getElementById("end").value.trim();
+      const btn = document.getElementById("btn");
+      const status = document.getElementById("status");
+      const result = document.getElementById("result");
+
+      result.innerHTML = "";
+      if (!url || !start || !end) {
+        status.textContent = "Sab fields bharo bhai";
+        return;
+      }
+
+      btn.disabled = true;
+      status.textContent = "Clip ban raha hai... (30-60 sec lag sakte hain)";
+
+      try {
+        const res = await fetch("/api/clip", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url, start, end }),
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          status.textContent = "❌ " + (data.error || "Kuch galat ho gaya");
+        } else {
+          status.textContent = "✅ Clip ready hai!";
+          result.innerHTML = `
+            <video controls src="${data.downloadUrl}"></video>
+            <br/>
+            <a href="${data.downloadUrl}" download>⬇ Download Clip</a>
+          `;
+        }
+      } catch (e) {
+        status.textContent = "❌ Server se connect nahi ho paaya";
+      }
+
+      btn.disabled = false;
+    }
+  </script>
+</body>
+</html>
