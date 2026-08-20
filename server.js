@@ -38,7 +38,7 @@ app.post("/api/clip", async (req, res) => {
   const id = uuidv4();
   const rawFile = path.join(OUTPUT_DIR, `${id}_raw.mp4`);
   const outFile = path.join(OUTPUT_DIR, `${id}.mp4`);
-  const downloadCmd = `yt-dlp ---extractor-args "youtube:player_client=android" -f "bv*[height<=720]+ba/b[height<=720]" --download-sections "*${startSec}-${endSec}" -o "${rawFile}" "${url}"`;
+  const downloadCmd = `yt-dlp --extractor-args "youtube:player_client=android" -f "bv*[height<=720]+ba/b[height<=720]" --download-sections "*${startSec}-${endSec}" -o "${rawFile}" "${url}"`;
   exec(downloadCmd, { timeout: 120000 }, (err, stdout, stderr) => {
     if (err) {
       console.error(stderr);
